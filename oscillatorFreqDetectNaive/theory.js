@@ -1,41 +1,38 @@
-// This is our custom audio node which which is based on the processor named 'my-worklet-processor'
-class MyWorkletNode extends AudioWorkletNode {
+// This is our custom audio node which which is based on the processor named 'frequency-processor'
+class FrequencyDetectorNode extends AudioWorkletNode {
 
-    // Javascript constructor is defined like this
     constructor(context) {
-        super(context, 'my-worklet-processor');
+        super(context, 'frequency-processor');
     }
 }
 
+
 const context = new AudioContext();
 const freqDisp = document.querySelector('.dom-freq');
+
+
 
 // This promise is resolved and tells that the class is ready to be used in the main scope
 context.audioWorklet.addModule('processors.js')
 .then(() => {
 
-    // Here you can instantiate that custom node
-    let node = new MyWorkletNode(context);
+    // Here we can instantiate that custom node
+    let frequencyDetectorNode = new FrequencyDetectorNode(context);
     let oscillator = new OscillatorNode(context);
-    let gainNode = context.createGain();
-    gainNode.gain.setValueAtTime(0.02, context.currentTime);
 
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(500, context.currentTime); // value in hertz
-    oscillator.connect(node);
-    node.connect(gainNode);
-    gainNode.connect(context.destination);
+    oscillator.connect(frequencyDetectorNode);
 
-    // If there is a message to node from its processor, then what should it do
-    node.port.onmessage = (event) => {
-        // Handling data from the processor.
+    // The processor will send the frequency that it got
+    frequencyDetectorNode.port.onmessage = (event) => {
         if(event.data) {
             freqDisp.innerHTML = `The dominant frequncy in the oscillator is ${event.data}`;
         }
     };
     
-    const playBtn = document.querySelector('.play-btn');
-    playBtn.addEventListener('click', function() {
+    const startBtn = document.querySelector('.start-btn');
+    startBtn.addEventListener('click', function() {
         oscillator.start();
     });
 
