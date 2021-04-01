@@ -1,41 +1,21 @@
-let noteNames = ['C', 'C# / Db', 'D', 'D# / Eb', 'E', 'F', 'F# / Gb', 'G', 'G# / Ab', 'A', 'A# / Bb', 'B' ]; 
 let freqPosition = 0;
 
-// Filling up the slides
-const slideContainer = document.querySelector('.slider-container');
-for(let i = 0; i < noteNames.length; i++) {
-    const currentSlide = document.createElement('DIV');
-    currentSlide.classList.add('slide');
-    currentSlide.dataset.id = `${i}`;
-    currentSlide.dataset.note = noteNames[i];
-    currentSlide.innerHTML = noteNames[i];
-    currentSlide.style.left = `${i*100}%`;
-    slideContainer.appendChild(currentSlide);
-}
-
-// Getting the pointer to those slides
-const slides = document.querySelectorAll('.slide');
-
-
-// transforming according to the currentfrequency
+const dial = document.querySelector('.dial');
 function applyTransform() {
     const noteDeviation = (freqPosition%5);
     const noteBefore = ((freqPosition - noteDeviation)/5)%12;
+    const angle = noteDeviation*6 + noteBefore*30;
 
-    slides.forEach(function(slide) {
-		slide.style.transform = `translateX(${-noteBefore*100 - 25*noteDeviation}%)`;
-	});
+	dial.style.transform = `rotate(${-angle}deg)`;
 }
 
 
 // This is our custom audio node which which is based on the processor named 'frequency-processor'
 class FrequencyDetectorNode extends AudioWorkletNode {
-
     constructor(context) {
         super(context, 'frequency-processor');
     }
 }
-
 
 
 if(navigator.mediaDevices) {
@@ -57,7 +37,8 @@ if(navigator.mediaDevices) {
 
             // The processor will send the frequency that it got
             frequencyDetectorNode.port.onmessage = (event) => {
-                if(event.data) {
+                console.log(event.data);
+                if(event.data && event.data != -1) {
                     freqPosition = event.data;
                     applyTransform();
                 }
